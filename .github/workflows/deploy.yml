@@ -34,3 +34,18 @@ jobs:
             --upload-file api/collections/index.cgi \
             "$url"
           echo "uploaded api/collections/index.cgi"
+      - name: Upload collection images via FTPS
+        shell: bash
+        env:
+          FTPS_HOST: ${{ secrets.FTPS_HOST }}
+          FTPS_USERNAME: ${{ secrets.FTPS_USERNAME }}
+          FTPS_PASSWORD: ${{ secrets.FTPS_PASSWORD }}
+          FTPS_REMOTE_DIR: ${{ secrets.FTPS_REMOTE_DIR }}
+        run: |
+          while IFS= read -r -d '' path; do
+            curl --fail --silent --show-error --ssl-reqd --ftp-create-dirs \
+              --user "$FTPS_USERNAME:$FTPS_PASSWORD" \
+              --upload-file "$path" \
+              "ftp://$FTPS_HOST/${FTPS_REMOTE_DIR%/}/$path"
+            echo "uploaded $path"
+          done < <(git ls-files -z -- assets/collections/cats assets/collections/dogs assets/collections/rocks)
