@@ -14,3 +14,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - name: Upload CGI via FTPS
+        shell: bash
+        env:
+          FTPS_HOST: ${{ secrets.FTPS_HOST }}
+          FTPS_USERNAME: ${{ secrets.FTPS_USERNAME }}
+          FTPS_PASSWORD: ${{ secrets.FTPS_PASSWORD }}
+          FTPS_REMOTE_DIR: ${{ secrets.FTPS_REMOTE_DIR }}
+        run: |
+          url="ftp://$FTPS_HOST/${FTPS_REMOTE_DIR%/}/api/collections/"
+          curl --fail --silent --show-error --ssl-reqd --ftp-create-dirs \
+            --user "$FTPS_USERNAME:$FTPS_PASSWORD" \
+            --upload-file api/collections/.htaccess \
+            "$url"
+          echo "uploaded api/collections/.htaccess"
+          curl --fail --silent --show-error --ssl-reqd --ftp-create-dirs \
+            --user "$FTPS_USERNAME:$FTPS_PASSWORD" \
+            --quote "-SITE CHMOD 755 index.cgi" \
+            --upload-file api/collections/index.cgi \
+            "$url"
+          echo "uploaded api/collections/index.cgi"
