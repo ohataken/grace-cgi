@@ -1,0 +1,103 @@
+openapi: 3.1.0
+info:
+  title: grace-cgi
+  version: 1.0.0
+  description: CGI API that lists the image files of each collection under /assets/collections/.
+paths:
+  /api/collections/{name}.json:
+    get:
+      operationId: listCollectionImages
+      summary: List the files in a collection
+      description: |
+        Returns the files placed directly under `/assets/collections/{name}/`.
+
+        - Entries are sorted by file name.
+        - Only files are listed (symbolic links to files included). Subdirectories and
+          files whose names start with `.` (such as `.DS_Store`) are excluded.
+        - The file type is not checked, so non-image files are listed as well.
+        - `path` is returned as-is without URL encoding.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Name of the directory under `/assets/collections/`.
+          schema:
+            type: string
+            pattern: ^[A-Za-z0-9_-]+$
+          examples:
+            cats:
+              value: cats
+            dogs:
+              value: dogs
+            rocks:
+              value: rocks
+      responses:
+        '200':
+          description: The collection exists. An empty directory returns an empty array.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CollectionItem'
+              examples:
+                cats:
+                  summary: /api/collections/cats.json
+                  value:
+                    - path: /assets/collections/cats/cats_1001.jpeg
+                    - path: /assets/collections/cats/cats_1002.jpeg
+                    - path: /assets/collections/cats/cats_1003.jpeg
+                    - path: /assets/collections/cats/cats_1004.jpeg
+                dogs:
+                  summary: /api/collections/dogs.json
+                  value:
+                    - path: /assets/collections/dogs/dogs_1001.jpeg
+                    - path: /assets/collections/dogs/dogs_1002.jpeg
+                    - path: /assets/collections/dogs/dogs_1003.jpeg
+                    - path: /assets/collections/dogs/dogs_1004.jpeg
+                rocks:
+                  summary: /api/collections/rocks.json
+                  value:
+                    - path: /assets/collections/rocks/rocks_1001.jpeg
+                    - path: /assets/collections/rocks/rocks_1002.jpeg
+                    - path: /assets/collections/rocks/rocks_1003.jpeg
+                    - path: /assets/collections/rocks/rocks_1004.jpeg
+        '404':
+          description: |
+            The collection was not found.
+
+            - `application/json`: returned by the CGI when `name` matches the pattern
+              but no such directory exists under `/assets/collections/`.
+            - `text/html`: Apache's default error page, returned when `name` does not
+              match the pattern and the request never reaches the CGI.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: not found
+            text/html:
+              schema:
+                type: string
+components:
+  schemas:
+    CollectionItem:
+      type: object
+      required:
+        - path
+      properties:
+        path:
+          type: string
+          description: Absolute URL path of the file.
+          examples:
+            - /assets/collections/cats/cats_1001.jpeg
+      additionalProperties: false
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          const: not found
+      additionalProperties: false
