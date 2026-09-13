@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+mkdir -p "$1"
+curl --fail --silent --show-error --ssl-reqd --user "$FTPS_USERNAME:$FTPS_PASSWORD" --list-only "ftp://$FTPS_HOST/${FTPS_REMOTE_DIR%/}/$1/" | tr -d '\r' | while IFS= read -r file; do
+  [[ $file == .* ]] && continue
+  curl --fail --silent --show-error --ssl-reqd --user "$FTPS_USERNAME:$FTPS_PASSWORD" --output "$1/$file" "ftp://$FTPS_HOST/${FTPS_REMOTE_DIR%/}/$1/$file"
+done
