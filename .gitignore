@@ -1,0 +1,4 @@
+/assets/collections/*/
+!/assets/collections/cats/
+!/assets/collections/dogs/
+!/assets/collections/rocks/
