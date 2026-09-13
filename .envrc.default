@@ -1,0 +1,4 @@
+export FTPS_HOST=example.com
+export FTPS_USERNAME=example
+export FTPS_PASSWORD=password
+export FTPS_REMOTE_DIR=www
