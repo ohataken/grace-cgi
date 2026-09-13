@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+for path in "$1"/*; do
+  curl --fail --silent --show-error --ssl-reqd --user "$FTPS_USERNAME:$FTPS_PASSWORD" --ftp-create-dirs --upload-file "$path" "ftp://$FTPS_HOST/${FTPS_REMOTE_DIR%/}/$1/"
+done
