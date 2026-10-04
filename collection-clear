@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+curl --fail --silent --show-error --ssl-reqd --user "$FTPS_USERNAME:$FTPS_PASSWORD" --list-only "ftp://$FTPS_HOST/${FTPS_REMOTE_DIR%/}/$1/" | tr -d '\r' | while IFS= read -r file; do
+  [[ $file == .* ]] && continue
+  curl --fail --silent --show-error --ssl-reqd --user "$FTPS_USERNAME:$FTPS_PASSWORD" --quote "DELE ${FTPS_REMOTE_DIR%/}/$1/$file" --list-only --output /dev/null "ftp://$FTPS_HOST/"
+done
