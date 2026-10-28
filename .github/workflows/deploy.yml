@@ -34,6 +34,12 @@ jobs:
             --upload-file api/collections/index.cgi \
             "$url"
           echo "uploaded api/collections/index.cgi"
+          curl --fail --silent --show-error --ssl-reqd --ftp-create-dirs \
+            --user "$FTPS_USERNAME:$FTPS_PASSWORD" \
+            --quote "-SITE CHMOD 755 index.cgi" \
+            --upload-file api/collections/file/index.cgi \
+            "${url}file/"
+          echo "uploaded api/collections/file/index.cgi"
       - name: Upload collection images via FTPS
         shell: bash
         env:
