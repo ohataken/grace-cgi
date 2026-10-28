@@ -1,2 +1,3 @@
 RewriteEngine On
 RewriteRule ^([A-Za-z0-9_-]+)\.json$ index.cgi?name=$1 [L]
+RewriteRule ^([A-Za-z0-9_-]+)/([A-Za-z0-9_-][A-Za-z0-9_.-]*)$ file/index.cgi?name=$1&file=$2 [END]
