@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: grace-cgi
   version: 1.0.0
-  description: CGI API that lists the image files of each collection under /assets/collections/.
+  description: CGI API that lists the image files of each collection under /assets/collections/ and returns the SHA-256 of each file.
 paths:
   /api/collections/{name}.json:
     get:
@@ -79,6 +79,61 @@ paths:
             text/html:
               schema:
                 type: string
+  /api/collections/{name}/{file}:
+    get:
+      operationId: getCollectionFile
+      summary: Get the path and SHA-256 of a file in a collection
+      description: |
+        Returns the path and SHA-256 digest of `/assets/collections/{name}/{file}`.
+
+        - Only files are accepted (symbolic links to files included). Subdirectories
+          are treated as not found.
+        - `file` must not start with `.`, so files such as `.DS_Store` are not served.
+        - The digest is recomputed from the file contents on every request.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Name of the directory under `/assets/collections/`.
+          schema:
+            type: string
+            pattern: ^[A-Za-z0-9_-]+$
+          example: cats
+        - name: file
+          in: path
+          required: true
+          description: Name of the file under `/assets/collections/{name}/`.
+          schema:
+            type: string
+            pattern: ^[A-Za-z0-9_-][A-Za-z0-9_.-]*$
+          example: cats_1001.jpeg
+      responses:
+        '200':
+          description: The file exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionFile'
+              example:
+                path: /assets/collections/cats/cats_1001.jpeg
+                sha256: 35109b87e5645cdd742d11c9c8822b83f0591ddee3b31cf7c750d8d63bb662b8
+        '404':
+          description: |
+            The file was not found.
+
+            - `application/json`: returned by the CGI when `name` and `file` match their
+              patterns but no such file exists under `/assets/collections/{name}/`.
+            - `text/html`: Apache's default error page, returned when `name` or `file`
+              does not match its pattern and the request never reaches the CGI.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: not found
+            text/html:
+              schema:
+                type: string
 components:
   schemas:
     CollectionItem:
@@ -91,6 +146,22 @@ components:
           description: Absolute URL path of the file.
           examples:
             - /assets/collections/cats/cats_1001.jpeg
+      additionalProperties: false
+    CollectionFile:
+      type: object
+      required:
+        - path
+        - sha256
+      properties:
+        path:
+          type: string
+          description: Absolute URL path of the file.
+          examples:
+            - /assets/collections/cats/cats_1001.jpeg
+        sha256:
+          type: string
+          description: SHA-256 digest of the file contents as lowercase hex.
+          pattern: ^[0-9a-f]{64}$
       additionalProperties: false
     Error:
       type: object
